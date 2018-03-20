@@ -1,0 +1,36 @@
+From 5c472322eb8e65b0e41302511c7bfbe11817283e Mon Sep 17 00:00:00 2001
+From: AmbrosL <AmbrosL@users.noreply.github.com>
+Date: Tue, 20 Mar 2018 22:37:26 +0100
+Subject: [PATCH] disable FallingBlock stacking at 256
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityFallingBlock.java b/src/main/java/net/minecraft/server/EntityFallingBlock.java
+index 36c384eb..e3bfd868 100644
+--- a/src/main/java/net/minecraft/server/EntityFallingBlock.java
++++ b/src/main/java/net/minecraft/server/EntityFallingBlock.java
+@@ -113,7 +113,7 @@ public class EntityFallingBlock extends Entity {
+                     if (this.world.getType(blockposition).getBlock() != Blocks.PISTON_EXTENSION) {
+                         this.die();
+                         if (!this.e) {
+-                            if (this.world.a(block, blockposition, true, EnumDirection.UP, (Entity) null, (ItemStack) null) && !BlockFalling.canFall(this.world, blockposition.down()) /* mimic the false conditions of setTypeIdAndData */ && blockposition.getX() >= -30000000 && blockposition.getZ() >= -30000000 && blockposition.getX() < 30000000 && blockposition.getZ() < 30000000 && blockposition.getY() >= 0 && blockposition.getY() < 256 && this.world.getType(blockposition) != this.block) {
++                            if (this.world.a(block, blockposition, true, EnumDirection.UP, (Entity) null, (ItemStack) null) && !BlockFalling.canFall(this.world, blockposition.down()) /* mimic the false conditions of setTypeIdAndData */ && blockposition.getX() >= -30000000 && blockposition.getZ() >= -30000000 && blockposition.getX() < 30000000 && blockposition.getZ() < 30000000 && blockposition.getY() >= 0 && blockposition.getY() < (this.world.tacoSpigotConfig.disableFallingBlockStackingAt256 ? 255 : 256) && this.world.getType(blockposition) != this.block) {
+                                 if (CraftEventFactory.callEntityChangeBlockEvent(this, blockposition.getX(), blockposition.getY(), blockposition.getZ(), this.block.getBlock(), this.block.getBlock().toLegacyData(this.block)).isCancelled()) {
+                                     return;
+                                 }
+diff --git a/src/main/java/net/techcable/tacospigot/TacoSpigotWorldConfig.java b/src/main/java/net/techcable/tacospigot/TacoSpigotWorldConfig.java
+index 37b982bd..8c0d5a07 100644
+--- a/src/main/java/net/techcable/tacospigot/TacoSpigotWorldConfig.java
++++ b/src/main/java/net/techcable/tacospigot/TacoSpigotWorldConfig.java
+@@ -108,4 +108,9 @@ public class TacoSpigotWorldConfig {
+         fixEastWest = getBoolean("bambi.fix-east-west-cannoning", false);
+         if(fixEastWest) log("fixing east/west cannoning");
+     }
++
++    public boolean disableFallingBlockStackingAt256;
++    private void disableFallingBlockStackingAt256() {
++        disableFallingBlockStackingAt256 = getBoolean("bambi.disable-FallingBlock-stacking-at256", false);
++    }
+ }
+-- 
+2.16.2.windows.1
+
