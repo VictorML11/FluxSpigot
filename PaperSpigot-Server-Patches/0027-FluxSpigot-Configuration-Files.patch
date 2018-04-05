@@ -1,0 +1,455 @@
+From 955c8f94ba367dd679a876ba86e616c435ba5a52 Mon Sep 17 00:00:00 2001
+From: Vml11 <victorbcn98@gmail.com>
+Date: Fri, 6 Apr 2018 01:19:44 +0200
+Subject: [PATCH] FluxSpigot-Configuration-Files
+
+
+diff --git a/src/main/java/me/torciv/fluxspigot/FluxSpigotConfig.java b/src/main/java/me/torciv/fluxspigot/FluxSpigotConfig.java
+new file mode 100644
+index 00000000..ab7dd665
+--- /dev/null
++++ b/src/main/java/me/torciv/fluxspigot/FluxSpigotConfig.java
+@@ -0,0 +1,111 @@
++package me.torciv.fluxspigot;
++
++import com.google.common.base.Throwables;
++import net.techcable.tacospigot.TacoSpigotConfig;
++import org.bukkit.Bukkit;
++import org.bukkit.configuration.InvalidConfigurationException;
++import org.bukkit.configuration.file.YamlConfiguration;
++
++import java.io.File;
++import java.io.IOException;
++import java.lang.reflect.InvocationTargetException;
++import java.lang.reflect.Method;
++import java.lang.reflect.Modifier;
++import java.util.List;
++import java.util.logging.Level;
++
++public class FluxSpigotConfig {
++
++    private static File CONFIG_FILE;
++    private static final String HEADER = "This is the main configuration file for FluxSpigot.\n" +
++            "This is a modification of TacoSpigot. Based on main repository of AmbrosL/CustomSpigot\n";
++
++    /*========================================================================*/
++    static YamlConfiguration config;
++    static int version;
++    /*========================================================================*/
++
++    public static void init(File configFile) {
++        CONFIG_FILE = configFile;
++        config = new YamlConfiguration();
++        try {
++            System.out.println("Loading FluxSpigot config from " + configFile.getName());
++            config.load(CONFIG_FILE);
++        } catch (IOException ex) {
++        } catch (InvalidConfigurationException ex) {
++            Bukkit.getLogger().log(Level.SEVERE, "Could not load flux.yml, please correct your syntax errors", ex);
++            throw Throwables.propagate(ex);
++        }
++        config.options().header(HEADER);
++        config.options().copyDefaults(true);
++
++        version = getInt("config-version", 1);
++        set("config-version", 1);
++        readConfig(TacoSpigotConfig.class, null);
++    }
++
++    static void readConfig(Class<?> clazz, Object instance) {
++        for (Method method : clazz.getDeclaredMethods()) {
++            if (Modifier.isPrivate(method.getModifiers())) {
++                if (method.getParameterTypes().length == 0 && method.getReturnType() == Void.TYPE) {
++                    try {
++                        method.setAccessible(true);
++                        method.invoke(instance);
++                    } catch (InvocationTargetException ex) {
++                        throw Throwables.propagate(ex.getCause());
++                    } catch (Exception ex) {
++                        Bukkit.getLogger().log(Level.SEVERE, "Error invoking " + method, ex);
++                    }
++                }
++            }
++        }
++
++        try {
++            config.save(CONFIG_FILE);
++        } catch (IOException ex) {
++            Bukkit.getLogger().log(Level.SEVERE, "Could not save " + CONFIG_FILE, ex);
++        }
++    }
++
++    private static void set(String path, Object val) {
++        config.set(path, val);
++    }
++
++    private static boolean getBoolean(String path, boolean def) {
++        config.addDefault(path, def);
++        return config.getBoolean(path, config.getBoolean(path));
++    }
++
++    private static double getDouble(String path, double def) {
++        config.addDefault(path, def);
++        return config.getDouble(path, config.getDouble(path));
++    }
++
++    private static float getFloat(String path, float def) {
++        config.addDefault(path, def);
++        return config.getFloat(path, config.getFloat(path));
++    }
++
++    private static int getInt(String path, int def) {
++        config.addDefault(path, def);
++        return config.getInt(path, config.getInt(path));
++    }
++
++    private static <T> List getList(String path, T def) {
++        config.addDefault(path, def);
++        return (List<T>) config.getList(path, config.getList(path));
++    }
++
++    private static String getString(String path, String def) {
++        config.addDefault(path, def);
++        return config.getString(path, config.getString(path));
++    }
++
++    // This is an example for adding a new Configuration Value [No section]
++    /*
++    public static boolean useArraysForBlockStates;
++    private static void useArraysForBlockStates() {
++        useArraysForBlockStates = getBoolean("useArraysForBlockStates", false);
++    }
++    */
++}
+diff --git a/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java b/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java
+new file mode 100644
+index 00000000..a468f656
+--- /dev/null
++++ b/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java
+@@ -0,0 +1,86 @@
++package me.torciv.fluxspigot;
++
++import org.bukkit.Bukkit;
++import org.bukkit.configuration.file.YamlConfiguration;
++
++import java.util.List;
++
++public class FluxSpigotWorldConfig {
++
++    private final String worldName;
++    private final YamlConfiguration config;
++    private boolean verbose;
++
++    public FluxSpigotWorldConfig(String worldName) {
++        this.worldName = worldName;
++        this.config = FluxSpigotConfig.config;
++        init();
++    }
++
++    public void init() {
++        this.verbose = getBoolean("verbose", true);
++
++        log("-------- World Settings For [" + worldName + "] --------");
++        FluxSpigotConfig.readConfig(FluxSpigotWorldConfig.class, this);
++    }
++
++    private void log(String s) {
++        if (verbose) {
++            Bukkit.getLogger().info(s);
++        }
++    }
++
++    private void set(String path, Object val) {
++        config.set("world-settings.default." + path, val);
++    }
++
++    private boolean getBoolean(String path, boolean def) {
++        config.addDefault("world-settings.default." + path, def);
++        return config.getBoolean("world-settings." + worldName + "." + path, config.getBoolean("world-settings.default." + path));
++    }
++
++    private double getDouble(String path, double def) {
++        config.addDefault("world-settings.default." + path, def);
++        return config.getDouble("world-settings." + worldName + "." + path, config.getDouble("world-settings.default." + path));
++    }
++
++    private int getInt(String path, int def) {
++        config.addDefault("world-settings.default." + path, def);
++        return config.getInt("world-settings." + worldName + "." + path, config.getInt("world-settings.default." + path));
++    }
++
++    private float getFloat(String path, float def) {
++        config.addDefault("world-settings.default." + path, def);
++        return config.getFloat("world-settings." + worldName + "." + path, config.getFloat("world-settings.default." + path));
++    }
++
++    private <T> List getList(String path, T def) {
++        config.addDefault("world-settings.default." + path, def);
++        return (List<T>) config.getList("world-settings." + worldName + "." + path, config.getList("world-settings.default." + path));
++    }
++
++    private String getString(String path, String def) {
++        config.addDefault("world-settings.default." + path, def);
++        return config.getString("world-settings." + worldName + "." + path, config.getString("world-settings.default." + path));
++    }
++
++
++    // Add here the configuration values!
++    /*
++    Example to generate a new config value
++
++    public boolean fixEastWest;
++    private void fixEastWest() {
++        fixEastWest = getBoolean("bambi.fix-east-west-cannoning", false);
++        if(fixEastWest) log("fixing east/west cannoning");
++    }
++    */
++
++
++    public boolean fixLeftShooting;
++    private void fixLeftShooting(){
++        fixLeftShooting = getBoolean("cannons.fix-left-shooting-cannoning", false);
++        if(fixLeftShooting) log("fixing left-Shooting cannoning");
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index d4f337e2..e4e4d45e 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -4,6 +4,7 @@ import com.google.common.base.Predicate;
+ import com.google.common.collect.Lists;
+ import com.google.common.collect.Maps;
+ import com.google.common.collect.Sets;
++import me.torciv.fluxspigot.FluxSpigotWorldConfig;
+ import org.bukkit.Bukkit;
+ import org.bukkit.block.BlockState;
+ import org.bukkit.craftbukkit.CraftServer;
+@@ -164,6 +165,8 @@ public abstract class World implements IBlockAccess {
+     public final co.aikar.timings.WorldTimingsHandler timings; // Spigot
+     public final net.techcable.tacospigot.TacoSpigotWorldConfig tacoSpigotConfig;
+ 
++    public final me.torciv.fluxspigot.FluxSpigotWorldConfig fluxSpigotConfig;
++
+     public CraftWorld getWorld() {
+         return this.world;
+     }
+@@ -180,6 +183,7 @@ public abstract class World implements IBlockAccess {
+         this.spigotConfig = new org.spigotmc.SpigotWorldConfig( worlddata.getName() ); // Spigot
+         this.paperSpigotConfig = new org.github.paperspigot.PaperSpigotWorldConfig( worlddata.getName() ); // PaperSpigot
+         this.tacoSpigotConfig = new net.techcable.tacospigot.TacoSpigotWorldConfig(worlddata.getName()); // TacoSpigot
++        this.fluxSpigotConfig = new me.torciv.fluxspigot.FluxSpigotWorldConfig(worlddata.getName()); // FluxSpigot
+         this.generator = gen;
+         this.world = new CraftWorld((WorldServer) this, gen, env);
+         this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index a2fb0398..a3bae839 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -1,48 +1,30 @@
+ package org.bukkit.craftbukkit;
+ 
+-import java.awt.image.BufferedImage;
+-import java.io.File;
+-import java.io.FileInputStream;
+-import java.io.FileNotFoundException;
+-import java.io.IOException;
+-import java.io.InputStreamReader;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collections;
+-import java.util.HashSet;
+-import java.util.Iterator;
+-import java.util.LinkedHashMap;
+-import java.util.LinkedHashSet;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
+-import java.util.UUID;
+-import java.util.logging.Level;
+-import java.util.logging.Logger;
+-import java.util.regex.Pattern;
+-
+-import javax.imageio.ImageIO;
+-
++import com.avaje.ebean.config.DataSourceConfig;
++import com.avaje.ebean.config.ServerConfig;
++import com.avaje.ebean.config.dbplatform.SQLitePlatform;
++import com.avaje.ebeaninternal.server.lib.sql.TransactionIsolation;
++import com.google.common.base.Charsets;
++import com.google.common.base.Function;
++import com.google.common.collect.ImmutableList;
++import com.google.common.collect.Lists;
++import com.google.common.collect.MapMaker;
++import com.mojang.authlib.GameProfile;
++import io.netty.buffer.ByteBuf;
++import io.netty.buffer.ByteBufOutputStream;
++import io.netty.buffer.Unpooled;
++import io.netty.handler.codec.base64.Base64;
++import jline.console.ConsoleReader;
++import net.md_5.bungee.api.chat.BaseComponent;
+ import net.minecraft.server.*;
+-
+-import org.bukkit.BanList;
+-import org.bukkit.Bukkit;
+-import org.bukkit.ChatColor;
+-import org.bukkit.GameMode;
+-import org.bukkit.Location;
+-import org.bukkit.OfflinePlayer;
+-import org.bukkit.Server;
+-import org.bukkit.UnsafeValues;
++import net.minecraft.server.WorldType;
++import org.apache.commons.lang.Validate;
++import org.bukkit.*;
+ import org.bukkit.Warning.WarningState;
+ import org.bukkit.World;
+ import org.bukkit.World.Environment;
+-import org.bukkit.WorldCreator;
+-import org.bukkit.command.Command;
++import org.bukkit.command.*;
+ import org.bukkit.command.CommandException;
+-import org.bukkit.command.CommandSender;
+-import org.bukkit.command.ConsoleCommandSender;
+-import org.bukkit.command.PluginCommand;
+-import org.bukkit.command.SimpleCommandMap;
+ import org.bukkit.configuration.ConfigurationSection;
+ import org.bukkit.configuration.file.YamlConfiguration;
+ import org.bukkit.configuration.serialization.ConfigurationSerialization;
+@@ -51,13 +33,7 @@ import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
+ import org.bukkit.craftbukkit.entity.CraftPlayer;
+ import org.bukkit.craftbukkit.generator.CraftChunkData;
+ import org.bukkit.craftbukkit.help.SimpleHelpMap;
+-import org.bukkit.craftbukkit.inventory.CraftFurnaceRecipe;
+-import org.bukkit.craftbukkit.inventory.CraftInventoryCustom;
+-import org.bukkit.craftbukkit.inventory.CraftItemFactory;
+-import org.bukkit.craftbukkit.inventory.CraftRecipe;
+-import org.bukkit.craftbukkit.inventory.CraftShapedRecipe;
+-import org.bukkit.craftbukkit.inventory.CraftShapelessRecipe;
+-import org.bukkit.craftbukkit.inventory.RecipeIterator;
++import org.bukkit.craftbukkit.inventory.*;
+ import org.bukkit.craftbukkit.map.CraftMapView;
+ import org.bukkit.craftbukkit.metadata.EntityMetadataStore;
+ import org.bukkit.craftbukkit.metadata.PlayerMetadataStore;
+@@ -75,55 +51,33 @@ import org.bukkit.event.inventory.InventoryType;
+ import org.bukkit.event.player.PlayerChatTabCompleteEvent;
+ import org.bukkit.event.world.WorldInitEvent;
+ import org.bukkit.event.world.WorldLoadEvent;
+-import org.bukkit.event.world.WorldSaveEvent;
+ import org.bukkit.event.world.WorldUnloadEvent;
+ import org.bukkit.generator.ChunkGenerator;
+ import org.bukkit.help.HelpMap;
+-import org.bukkit.inventory.FurnaceRecipe;
++import org.bukkit.inventory.*;
+ import org.bukkit.inventory.ItemStack;
+-import org.bukkit.inventory.Inventory;
+-import org.bukkit.inventory.InventoryHolder;
+-import org.bukkit.inventory.Recipe;
+-import org.bukkit.inventory.ShapedRecipe;
+-import org.bukkit.inventory.ShapelessRecipe;
+ import org.bukkit.permissions.Permissible;
+ import org.bukkit.permissions.Permission;
+-import org.bukkit.plugin.Plugin;
+-import org.bukkit.plugin.PluginLoadOrder;
+-import org.bukkit.plugin.PluginManager;
+-import org.bukkit.plugin.ServicesManager;
+-import org.bukkit.plugin.SimplePluginManager;
+-import org.bukkit.plugin.SimpleServicesManager;
++import org.bukkit.plugin.*;
+ import org.bukkit.plugin.java.JavaPluginLoader;
+ import org.bukkit.plugin.messaging.Messenger;
++import org.bukkit.plugin.messaging.StandardMessenger;
+ import org.bukkit.potion.Potion;
+ import org.bukkit.potion.PotionEffectType;
+-import org.bukkit.plugin.messaging.StandardMessenger;
+ import org.bukkit.scheduler.BukkitWorker;
+ import org.bukkit.util.StringUtil;
+ import org.bukkit.util.permissions.DefaultPermissions;
+ import org.yaml.snakeyaml.Yaml;
+ import org.yaml.snakeyaml.constructor.SafeConstructor;
+ import org.yaml.snakeyaml.error.MarkedYAMLException;
+-import org.apache.commons.lang.Validate;
+-
+-import com.avaje.ebean.config.DataSourceConfig;
+-import com.avaje.ebean.config.ServerConfig;
+-import com.avaje.ebean.config.dbplatform.SQLitePlatform;
+-import com.avaje.ebeaninternal.server.lib.sql.TransactionIsolation;
+-import com.google.common.base.Charsets;
+-import com.google.common.base.Function;
+-import com.google.common.collect.ImmutableList;
+-import com.google.common.collect.Lists;
+-import com.google.common.collect.MapMaker;
+-import com.mojang.authlib.GameProfile;
+ 
+-import io.netty.buffer.ByteBuf;
+-import io.netty.buffer.ByteBufOutputStream;
+-import io.netty.buffer.Unpooled;
+-import io.netty.handler.codec.base64.Base64;
+-import jline.console.ConsoleReader;
+-import net.md_5.bungee.api.chat.BaseComponent;
++import javax.imageio.ImageIO;
++import java.awt.image.BufferedImage;
++import java.io.*;
++import java.util.*;
++import java.util.logging.Level;
++import java.util.logging.Logger;
++import java.util.regex.Pattern;
+ 
+ public final class CraftServer implements Server {
+     private static final Player[] EMPTY_PLAYER_ARRAY = new Player[0];
+@@ -387,7 +341,6 @@ public final class CraftServer implements Server {
+         return bukkitVersion;
+     }
+ 
+-    @Override
+     @Deprecated
+     @SuppressWarnings("unchecked")
+     public Player[] _INVALID_getOnlinePlayers() {
+@@ -715,6 +668,7 @@ public final class CraftServer implements Server {
+         org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
+         org.github.paperspigot.PaperSpigotConfig.init((File) console.options.valueOf("paper-settings")); // PaperSpigot
+         net.techcable.tacospigot.TacoSpigotConfig.init((File) console.options.valueOf("taco-settings")); // TacoSpigot
++        me.torciv.fluxspigot.FluxSpigotConfig.init((File) console.options.valueOf("flux-settings")); // FluxSpigot
+         for (WorldServer world : console.worlds) {
+             world.worldData.setDifficulty(difficulty);
+             world.setSpawnFlags(monsters, animals);
+@@ -732,6 +686,7 @@ public final class CraftServer implements Server {
+             world.spigotConfig.init(); // Spigot
+             world.paperSpigotConfig.init(); // PaperSpigot
+             world.tacoSpigotConfig.init(); // TacoSpigot
++            world.fluxSpigotConfig.init(); // FluxSpigot
+         }
+ 
+         pluginManager.clearPlugins();
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index a5bbd8b7..768b25dd 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -148,6 +148,14 @@ public class Main {
+                         .defaultsTo(new File("taco.yml"))
+                         .describedAs("Yml file");
+                 // TacoSpigot end
++
++                // FluxSpigot Start
++                acceptsAll(asList("flux", "flux-settings"), "File for fluxspigot settings")
++                        .withRequiredArg()
++                        .ofType(File.class)
++                        .defaultsTo(new File("flux.yml"))
++                        .describedAs("Yml file");
++                // FluxSpigot end
+             }
+         };
+ 
+@@ -216,6 +224,9 @@ public class Main {
+                 }
+                 // Spigot End
+                 net.techcable.tacospigot.TacoSpigotConfig.init((File) options.valueOf("taco-settings")); // TacoSpigot - load config before we load libraries to allow access while loading
++
++                me.torciv.fluxspigot.FluxSpigotConfig.init((File) options.valueOf("flux-settings")); // FluxSpigot - load config before we load libraries to allow access while loading
++
+                 System.out.println("Loading libraries, please wait...");
+                 MinecraftServer.main(options);
+             } catch (Throwable t) {
+-- 
+2.13.0.windows.1
+
