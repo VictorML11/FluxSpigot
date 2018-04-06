@@ -1,4 +1,4 @@
-From 06a8c7ea5d5771f5e65774b1c41efd7adfde081c Mon Sep 17 00:00:00 2001
+From 347c13c78688f53e07315d73476e7d7cd1ad58d5 Mon Sep 17 00:00:00 2001
 From: Vml11 <victorbcn98@gmail.com>
 Date: Fri, 6 Apr 2018 02:40:27 +0200
 Subject: [PATCH] Added-TNTDispenseEvent
@@ -6,10 +6,10 @@ Subject: [PATCH] Added-TNTDispenseEvent
 
 diff --git a/src/main/java/me/torciv/fluxspigot/event/entity/TNTDispensedEvent.java b/src/main/java/me/torciv/fluxspigot/event/entity/TNTDispensedEvent.java
 new file mode 100644
-index 00000000..e8a4f688
+index 00000000..5a20a78f
 --- /dev/null
 +++ b/src/main/java/me/torciv/fluxspigot/event/entity/TNTDispensedEvent.java
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,44 @@
 +package me.torciv.fluxspigot.event.entity;
 +
 +import org.bukkit.entity.Entity;
@@ -22,25 +22,15 @@ index 00000000..e8a4f688
 + */
 +public class TNTDispensedEvent extends EntityEvent implements Cancellable {
 +
-+    private Entity entityTNTPrimed;
++    private boolean cancelled;
++    private static final HandlerList handlerList = new HandlerList();
 +
 +    public TNTDispensedEvent(Entity tnt) {
 +        super(tnt);
 +        this.cancelled = false;
 +    }
 +
-+    public Entity getEntityTNTPrimed() {
-+        return entityTNTPrimed;
-+    }
-+
-+    public void setEntityTNTPrimed(Entity entityTNTPrimed) {
-+        this.entityTNTPrimed = entityTNTPrimed;
-+    }
-+
-+
 +    // Cancellable
-+
-+    private boolean cancelled;
 +
 +    @Override
 +    public boolean isCancelled() {
@@ -53,9 +43,7 @@ index 00000000..e8a4f688
 +    }
 +
 +    // handlers
-+
-+    private static final HandlerList handlerList = new HandlerList();
-+
++    
 +    @Override
 +    public HandlerList getHandlers() {
 +        return handlerList;
