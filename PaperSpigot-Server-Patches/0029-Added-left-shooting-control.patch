@@ -1,4 +1,4 @@
-From f9ab3f7cbc6413b821b1fa3b860647f3fc9211e2 Mon Sep 17 00:00:00 2001
+From b8a9162cee3bad5d99741b055fba4fcb4dc7e9e4 Mon Sep 17 00:00:00 2001
 From: Vml11 <victorbcn98@gmail.com>
 Date: Fri, 6 Apr 2018 18:42:52 +0200
 Subject: [PATCH] Added-left-shooting-control
@@ -28,12 +28,13 @@ index 72a3f9df4..f00916844 100644
          fireTNTDispenseEvent = getBoolean("cannons.fire-tnt-dispense-event", true);
 diff --git a/src/main/java/me/torciv/fluxspigot/utils/Util.java b/src/main/java/me/torciv/fluxspigot/utils/Util.java
 new file mode 100644
-index 000000000..e084f4335
+index 000000000..b8604bc7d
 --- /dev/null
 +++ b/src/main/java/me/torciv/fluxspigot/utils/Util.java
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,46 @@
 +package me.torciv.fluxspigot.utils;
 +
++import net.minecraft.server.EntityFallingBlock;
 +import org.bukkit.Location;
 +import org.bukkit.entity.FallingBlock;
 +
@@ -57,30 +58,93 @@ index 000000000..e084f4335
 +        return distance;
 +    }
 +
++    public static double fallingBlockTravelDistances(EntityFallingBlock entity){
++        double distance = -1.0;
++        double from [] = new double [2];
++        double to [] = new double [2];
++
++        Location spawn = entity.sourceLoc;
++        from[0] = spawn.getX();
++        from[1] = spawn.getZ();
++
++        to[0] = entity.locX;
++        to[1] = entity.locZ;
++        distance = calculateDistance(from,to);
++
++        return distance;
++    }
++
 +    private static double calculateDistance(double[] from, double [] to){
 +        return Math.sqrt(((Math.pow((to[0]-from[0]),2) + Math.pow((to[1]-from[1]),2))));
 +    }
 +}
+diff --git a/src/main/java/net/minecraft/server/EntityFallingBlock.java b/src/main/java/net/minecraft/server/EntityFallingBlock.java
+index e3bfd8683..c8600dbd5 100644
+--- a/src/main/java/net/minecraft/server/EntityFallingBlock.java
++++ b/src/main/java/net/minecraft/server/EntityFallingBlock.java
+@@ -18,6 +18,8 @@ public class EntityFallingBlock extends Entity {
+     public NBTTagCompound tileEntityData;
+     public org.bukkit.Location sourceLoc; // PaperSpigot
+ 
++    public boolean traveledTooFar = false;
++
+     // PaperSpigot start - Add FallingBlock source location API
+     public EntityFallingBlock(World world) {
+         this(null, world);
+@@ -83,6 +85,7 @@ public class EntityFallingBlock extends Entity {
+             }
+ 
+             this.motY -= 0.03999999910593033D;
++            System.out.println("x " + motX + " y " + motY + " z " + motZ);
+             this.move(this.motX, this.motY, this.motZ);
+ 
+             // PaperSpigot start - Remove entities in unloaded chunks
 diff --git a/src/main/java/net/minecraft/server/Explosion.java b/src/main/java/net/minecraft/server/Explosion.java
-index f4ccd8d4d..e1f483871 100644
+index f4ccd8d4d..ba0c49bb3 100644
 --- a/src/main/java/net/minecraft/server/Explosion.java
 +++ b/src/main/java/net/minecraft/server/Explosion.java
-@@ -10,10 +10,14 @@ import java.util.Map;
+@@ -10,10 +10,16 @@ import java.util.Map;
  import java.util.Random;
  
  // CraftBukkit start
 +import me.torciv.fluxspigot.utils.Util;
++import org.bukkit.craftbukkit.entity.CraftEntity;
  import org.bukkit.craftbukkit.event.CraftEventFactory;
 +import org.bukkit.entity.FallingBlock;
 +import org.bukkit.entity.TNTPrimed;
  import org.bukkit.event.entity.EntityExplodeEvent;
  import org.bukkit.Location;
  import org.bukkit.event.block.BlockExplodeEvent;
++import org.bukkit.metadata.FixedMetadataValue;
 +import org.bukkit.util.Vector;
  // CraftBukkit end
  
  public class Explosion {
-@@ -198,6 +202,7 @@ public class Explosion {
+@@ -147,6 +153,23 @@ public class Explosion {
+                         // CraftBukkit end
+                         double d14 = entity instanceof EntityHuman && world.paperSpigotConfig.disableExplosionKnockback ? 0 : EnchantmentProtection.a(entity, d13); // PaperSpigot
+ 
++                        if(entity instanceof  EntityFallingBlock){
++                            EntityFallingBlock entityFallingBlock = (EntityFallingBlock) entity;
++                            CraftEntity centitiy = CraftEntity.getEntity(world.getServer(),entity);
++                            if(!entityFallingBlock.traveledTooFar){
++                                double traveled = Util.fallingBlockTravelDistances(entityFallingBlock);
++                                System.out.println(traveled);
++                                if(traveled >= 20.0){
++                                    entityFallingBlock.traveledTooFar = true;
++                                    entity.motX = 0;
++                                    entity.motZ = 0;
++                                }
++                            }else{
++                                entity.motX = 0;
++                                entity.motZ = 0;
++
++                            }
++                        }
+                         // PaperSpigot start - Fix cannons
+                         /*
+                         entity.motX += d8 * d14;
+@@ -198,6 +221,7 @@ public class Explosion {
  
              boolean cancelled;
              List<org.bukkit.block.Block> bukkitBlocks;
@@ -88,7 +152,7 @@ index f4ccd8d4d..e1f483871 100644
              float yield;
  
              if (explode != null) {
-@@ -206,6 +211,15 @@ public class Explosion {
+@@ -206,6 +230,15 @@ public class Explosion {
                  cancelled = event.isCancelled();
                  bukkitBlocks = event.blockList();
                  yield = event.getYield();
@@ -104,7 +168,7 @@ index f4ccd8d4d..e1f483871 100644
              } else {
                  BlockExplodeEvent event = new BlockExplodeEvent(location.getBlock(), blockList, 0.3F);
                  this.world.getServer().getPluginManager().callEvent(event);
-@@ -225,6 +239,25 @@ public class Explosion {
+@@ -225,6 +258,26 @@ public class Explosion {
                  this.wasCanceled = true;
                  return;
              }
@@ -119,8 +183,9 @@ index f4ccd8d4d..e1f483871 100644
 +                        FallingBlock fallingBlock = (FallingBlock) fb;
 +                        double traveled = Util.fallingBlockTravelDistance(fallingBlock);
 +                        if(traveled != -1 && traveled >= world.fluxSpigotConfig.leftShootingAcurancy ){
-+                            double y_vel = fb.getVelocity().getY();
-+                            fb.setVelocity(new Vector(0.0,y_vel,0.0));
++                            continue;
++                            //double y_vel = fb.getVelocity().getY();
++                            //fb.setVelocity(new Vector(0.0,y_vel,0.0));
 +                        }
 +                    }
 +                }
