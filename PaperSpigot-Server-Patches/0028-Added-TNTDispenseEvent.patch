@@ -1,18 +1,35 @@
-From 6190851f0f6b240e051cdda2c48abac3e22b3681 Mon Sep 17 00:00:00 2001
+From a6737784a693db4744c676c6afeec3c337d07343 Mon Sep 17 00:00:00 2001
 From: Vml11 <victorbcn98@gmail.com>
 Date: Fri, 6 Apr 2018 02:40:26 +0200
 Subject: [PATCH] Added-TNTDispenseEvent
 
 
+diff --git a/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java b/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java
+index a468f656a..72a3f9df4 100644
+--- a/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java
++++ b/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java
+@@ -83,4 +83,10 @@ public class FluxSpigotWorldConfig {
+         if(fixLeftShooting) log("fixing left-Shooting cannoning");
+     }
+ 
++    public boolean fireTNTDispenseEvent;
++    private void fireTNTDispenseEvent(){
++        fireTNTDispenseEvent = getBoolean("cannons.fire-tnt-dispense-event", true);
++        if(fireTNTDispenseEvent) log("Dispensers fire TNTDispenseEvent set to True");
++    }
++
+ }
+\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DispenserRegistry.java b/src/main/java/net/minecraft/server/DispenserRegistry.java
-index cc7a1e31..bc46b3b0 100644
+index cc7a1e31b..7265f985a 100644
 --- a/src/main/java/net/minecraft/server/DispenserRegistry.java
 +++ b/src/main/java/net/minecraft/server/DispenserRegistry.java
-@@ -4,10 +4,13 @@ import com.mojang.authlib.GameProfile;
+@@ -4,10 +4,14 @@ import com.mojang.authlib.GameProfile;
  import java.io.PrintStream;
  import java.util.Random;
  import java.util.UUID;
 +
++import me.torciv.fluxspigot.FluxSpigotWorldConfig;
 +import me.torciv.fluxspigot.event.entity.TNTDispensedEvent;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -22,7 +39,7 @@ index cc7a1e31..bc46b3b0 100644
  import org.bukkit.craftbukkit.inventory.CraftItemStack;
  import org.bukkit.event.block.BlockDispenseEvent;
  // CraftBukkit end
-@@ -548,9 +551,16 @@ public class DispenserRegistry {
+@@ -548,9 +552,23 @@ public class DispenserRegistry {
                  EntityTNTPrimed entitytntprimed = new EntityTNTPrimed(block.getLocation(), world, event.getVelocity().getX(), event.getVelocity().getY(), event.getVelocity().getZ(), (EntityLiving) null); // PaperSpigot
                  // CraftBukkit end
  
@@ -31,14 +48,21 @@ index cc7a1e31..bc46b3b0 100644
 -                // --itemstack.count; // CraftBukkit - handled above
 +                // FluxSpigot Entity spawned
 +
-+                TNTDispensedEvent tntDispensedEvent = new TNTDispensedEvent(CraftEntity.getEntity(entitytntprimed.getWorld().getServer(),entitytntprimed));
-+                world.getServer().getPluginManager().callEvent(tntDispensedEvent);
++                if(world.fluxSpigotConfig.fireTNTDispenseEvent){
++                    TNTDispensedEvent tntDispensedEvent = new TNTDispensedEvent(CraftEntity.getEntity(entitytntprimed.getWorld().getServer(),entitytntprimed));
++                    world.getServer().getPluginManager().callEvent(tntDispensedEvent);
 +
-+                if (!tntDispensedEvent.isCancelled()) {
++                    if (!tntDispensedEvent.isCancelled()) {
++                        world.addEntity(entitytntprimed);
++                        world.makeSound(entitytntprimed, "game.tnt.primed", 1.0F, 1.0F);
++                        // --itemstack.count; // CraftBukkit - handled above
++                    }
++                }else{
 +                    world.addEntity(entitytntprimed);
 +                    world.makeSound(entitytntprimed, "game.tnt.primed", 1.0F, 1.0F);
 +                    // --itemstack.count; // CraftBukkit - handled above
 +                }
++
                  return itemstack;
              }
          });
