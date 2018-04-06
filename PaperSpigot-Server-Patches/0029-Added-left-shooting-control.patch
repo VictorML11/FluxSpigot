@@ -1,4 +1,4 @@
-From 6839ddb062bb969db2a47c1ad8cb27fcf486acd3 Mon Sep 17 00:00:00 2001
+From f9ab3f7cbc6413b821b1fa3b860647f3fc9211e2 Mon Sep 17 00:00:00 2001
 From: Vml11 <victorbcn98@gmail.com>
 Date: Fri, 6 Apr 2018 18:42:52 +0200
 Subject: [PATCH] Added-left-shooting-control
@@ -28,10 +28,10 @@ index 72a3f9df4..f00916844 100644
          fireTNTDispenseEvent = getBoolean("cannons.fire-tnt-dispense-event", true);
 diff --git a/src/main/java/me/torciv/fluxspigot/utils/Util.java b/src/main/java/me/torciv/fluxspigot/utils/Util.java
 new file mode 100644
-index 000000000..41c2f4c00
+index 000000000..e084f4335
 --- /dev/null
 +++ b/src/main/java/me/torciv/fluxspigot/utils/Util.java
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,29 @@
 +package me.torciv.fluxspigot.utils;
 +
 +import org.bukkit.Location;
@@ -52,11 +52,8 @@ index 000000000..41c2f4c00
 +        Location explosion = entity.getLocation();
 +        to[0] = explosion.getX();
 +        to[1] = explosion.getZ();
-+
-+        System.out.println(from + " " + to);
 +        distance = calculateDistance(from,to);
-+
-+
++        
 +        return distance;
 +    }
 +
