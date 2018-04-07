@@ -1,4 +1,4 @@
-From 7b9fc987fb87769030506b5897b5643edc3dc616 Mon Sep 17 00:00:00 2001
+From 4b6f35f54e82af3346cd013dc1c0d465f58aa2ed Mon Sep 17 00:00:00 2001
 From: Vml11 <victorbcn98@gmail.com>
 Date: Fri, 6 Apr 2018 18:42:52 +0200
 Subject: [PATCH] Added-left-shooting-control
@@ -60,7 +60,7 @@ index 000000000..21d2414ee
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/EntityFallingBlock.java b/src/main/java/net/minecraft/server/EntityFallingBlock.java
-index e3bfd8683..9b80c63eb 100644
+index e3bfd8683..99c82d6fd 100644
 --- a/src/main/java/net/minecraft/server/EntityFallingBlock.java
 +++ b/src/main/java/net/minecraft/server/EntityFallingBlock.java
 @@ -18,6 +18,8 @@ public class EntityFallingBlock extends Entity {
@@ -72,15 +72,7 @@ index e3bfd8683..9b80c63eb 100644
      // PaperSpigot start - Add FallingBlock source location API
      public EntityFallingBlock(World world) {
          this(null, world);
-@@ -83,6 +85,7 @@ public class EntityFallingBlock extends Entity {
-             }
- 
-             this.motY -= 0.03999999910593033D;
-+            System.out.println("x " + motX + " y " + motY + " z " + motZ);
-             this.move(this.motX, this.motY, this.motZ);
- 
-             // PaperSpigot start - Remove entities in unloaded chunks
-@@ -104,6 +107,8 @@ public class EntityFallingBlock extends Entity {
+@@ -104,6 +106,8 @@ public class EntityFallingBlock extends Entity {
              this.motX *= 0.9800000190734863D;
              this.motY *= 0.9800000190734863D;
              this.motZ *= 0.9800000190734863D;
@@ -90,7 +82,7 @@ index e3bfd8683..9b80c63eb 100644
                  blockposition = new BlockPosition(this);
                  if (this.onGround) {
 diff --git a/src/main/java/net/minecraft/server/Explosion.java b/src/main/java/net/minecraft/server/Explosion.java
-index f4ccd8d4d..1e05e6a77 100644
+index f4ccd8d4d..b9375223a 100644
 --- a/src/main/java/net/minecraft/server/Explosion.java
 +++ b/src/main/java/net/minecraft/server/Explosion.java
 @@ -3,17 +3,15 @@ package net.minecraft.server;
@@ -118,7 +110,7 @@ index f4ccd8d4d..1e05e6a77 100644
  // CraftBukkit end
  
  public class Explosion {
-@@ -147,15 +145,42 @@ public class Explosion {
+@@ -147,15 +145,44 @@ public class Explosion {
                          // CraftBukkit end
                          double d14 = entity instanceof EntityHuman && world.paperSpigotConfig.disableExplosionKnockback ? 0 : EnchantmentProtection.a(entity, d13); // PaperSpigot
  
@@ -163,13 +155,15 @@ index f4ccd8d4d..1e05e6a77 100644
 +                                }else{
 +                                    entity.g(0.0D, d9 * d14, 0.0D); // Cancel X & Z Velocity
 +                                }
++                            }else{
++                                entity.g(d8 * d14, d9 * d14, d10 * d14); // Default velocity
 +                            }
 +                        }
 +                        // End FluxSpigot LeftShooting Patch
  
                          if (entity instanceof EntityHuman && !((EntityHuman) entity).abilities.isInvulnerable && !world.paperSpigotConfig.disableExplosionKnockback) { // PaperSpigot
                              this.k.put((EntityHuman) entity, new Vec3D(d8 * d13, d9 * d13, d10 * d13));
-@@ -198,6 +223,7 @@ public class Explosion {
+@@ -198,6 +225,7 @@ public class Explosion {
  
              boolean cancelled;
              List<org.bukkit.block.Block> bukkitBlocks;
@@ -177,7 +171,7 @@ index f4ccd8d4d..1e05e6a77 100644
              float yield;
  
              if (explode != null) {
-@@ -225,6 +251,7 @@ public class Explosion {
+@@ -225,6 +253,7 @@ public class Explosion {
                  this.wasCanceled = true;
                  return;
              }
