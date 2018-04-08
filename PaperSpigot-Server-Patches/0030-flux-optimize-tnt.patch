@@ -1,4 +1,4 @@
-From cce772399c9c41deda826a349b0d438c163881b4 Mon Sep 17 00:00:00 2001
+From d888046e7ca8c6b5684f4096392d3a353a48932e Mon Sep 17 00:00:00 2001
 From: daniel <cens097541@gmail.com>
 Date: Sat, 7 Apr 2018 15:21:11 +0200
 Subject: [PATCH] flux-optimize-tnt
@@ -64,10 +64,10 @@ index 872d9659..dee1cfa3 100644
          return this.inWater;
      }
 diff --git a/src/main/java/net/minecraft/server/Explosion.java b/src/main/java/net/minecraft/server/Explosion.java
-index e1f48387..de4d2b4a 100644
+index b9375223..b826c35c 100644
 --- a/src/main/java/net/minecraft/server/Explosion.java
 +++ b/src/main/java/net/minecraft/server/Explosion.java
-@@ -176,12 +176,16 @@ public class Explosion {
+@@ -199,12 +199,16 @@ public class Explosion {
          float volume = source instanceof EntityTNTPrimed ? world.paperSpigotConfig.tntExplosionVolume : 4.0F;
          this.world.makeSound(this.posX, this.posY, this.posZ, "random.explode", volume, (1.0F + (this.world.random.nextFloat() - this.world.random.nextFloat()) * 0.2F) * 0.7F);
          // PaperSpigot end
@@ -85,7 +85,7 @@ index e1f48387..de4d2b4a 100644
          Iterator iterator;
          BlockPosition blockposition;
  
-@@ -284,8 +288,13 @@ public class Explosion {
+@@ -280,8 +284,13 @@ public class Explosion {
                      d3 *= d7;
                      d4 *= d7;
                      d5 *= d7;
@@ -99,6 +99,32 @@ index e1f48387..de4d2b4a 100644
                  }
  
                  if (block.getMaterial() != Material.AIR) {
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 40a066ca..79db9e4a 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -1067,15 +1067,20 @@ public class WorldServer extends World implements IAsyncTaskHandler {
+             explosion.clearBlocks();
+         }
+ 
+-        Iterator iterator = this.players.iterator();
++        // fluxspigot fix tnt lag //
+ 
++        /*
++        Iterator iterator = this.players.iterator();
+         while (iterator.hasNext()) {
+             EntityHuman entityhuman = (EntityHuman) iterator.next();
+ 
+             if (entityhuman.e(d0, d1, d2) < 4096.0D) {
+                 ((EntityPlayer) entityhuman).playerConnection.sendPacket(new PacketPlayOutExplosion(d0, d1, d2, f, explosion.getBlocks(), (Vec3D) explosion.b().get(entityhuman)));
+             }
++
+         }
++        */
++        // fluxspigot fix tnt lag //
+ 
+         return explosion;
+     }
 -- 
 2.14.3.windows.1
 
