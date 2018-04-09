@@ -1,11 +1,24 @@
-From d888046e7ca8c6b5684f4096392d3a353a48932e Mon Sep 17 00:00:00 2001
+From f85adc3c78f51db8dc12c0685740c84267a2965f Mon Sep 17 00:00:00 2001
 From: daniel <cens097541@gmail.com>
 Date: Sat, 7 Apr 2018 15:21:11 +0200
 Subject: [PATCH] flux-optimize-tnt
 
 
+diff --git a/pom.xml b/pom.xml
+index d116fa455..d96aa102a 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -123,7 +123,7 @@
+             <artifactId>gitdescribe-maven-plugin</artifactId>
+             <version>1.3</version>
+             <configuration>
+-                <outputPrefix>git-TacoSpigot-</outputPrefix>
++                <outputPrefix>FluxSpigot-</outputPrefix>
+                 <scmDirectory>..</scmDirectory>
+             </configuration>
+             <executions>
 diff --git a/src/main/java/net/minecraft/server/EntityTNTPrimed.java b/src/main/java/net/minecraft/server/EntityTNTPrimed.java
-index 872d9659..dee1cfa3 100644
+index 872d9659c..dee1cfa3c 100644
 --- a/src/main/java/net/minecraft/server/EntityTNTPrimed.java
 +++ b/src/main/java/net/minecraft/server/EntityTNTPrimed.java
 @@ -27,17 +27,22 @@ public class EntityTNTPrimed extends Entity {
@@ -63,8 +76,32 @@ index 872d9659..dee1cfa3 100644
  
          return this.inWater;
      }
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index 1fc2388ea..41b593c5e 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -522,9 +522,17 @@ public class EntityTrackerEntry {
+                 return packetplayoutspawnentity;
+             } else if (this.tracker instanceof EntityEgg) {
+                 return new PacketPlayOutSpawnEntity(this.tracker, 62);
+-            } else if (this.tracker instanceof EntityTNTPrimed) {
++            }
++
++            //fluxspigot invisible tnt //
++            /*
++            else if (this.tracker instanceof EntityTNTPrimed) {
+                 return new PacketPlayOutSpawnEntity(this.tracker, 50);
+-            } else if (this.tracker instanceof EntityEnderCrystal) {
++            }
++           */
++            // fluxspigot invisible tnt //
++
++            else if (this.tracker instanceof EntityEnderCrystal) {
+                 return new PacketPlayOutSpawnEntity(this.tracker, 51);
+             } else if (this.tracker instanceof EntityFallingBlock) {
+                 EntityFallingBlock entityfallingblock = (EntityFallingBlock) this.tracker;
 diff --git a/src/main/java/net/minecraft/server/Explosion.java b/src/main/java/net/minecraft/server/Explosion.java
-index b9375223..b826c35c 100644
+index b9375223a..b826c35c6 100644
 --- a/src/main/java/net/minecraft/server/Explosion.java
 +++ b/src/main/java/net/minecraft/server/Explosion.java
 @@ -199,12 +199,16 @@ public class Explosion {
@@ -100,7 +137,7 @@ index b9375223..b826c35c 100644
  
                  if (block.getMaterial() != Material.AIR) {
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 40a066ca..79db9e4a 100644
+index 40a066ca5..79db9e4a8 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -1067,15 +1067,20 @@ public class WorldServer extends World implements IAsyncTaskHandler {
