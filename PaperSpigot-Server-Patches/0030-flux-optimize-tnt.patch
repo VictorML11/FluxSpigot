@@ -1,4 +1,4 @@
-From f85adc3c78f51db8dc12c0685740c84267a2965f Mon Sep 17 00:00:00 2001
+From 912f7afa02f3868c8b945e7274d3682e020a04f8 Mon Sep 17 00:00:00 2001
 From: daniel <cens097541@gmail.com>
 Date: Sat, 7 Apr 2018 15:21:11 +0200
 Subject: [PATCH] flux-optimize-tnt
@@ -77,7 +77,7 @@ index 872d9659c..dee1cfa3c 100644
          return this.inWater;
      }
 diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
-index 1fc2388ea..41b593c5e 100644
+index 1fc2388ea..a76e15a03 100644
 --- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 +++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 @@ -522,9 +522,17 @@ public class EntityTrackerEntry {
@@ -85,15 +85,16 @@ index 1fc2388ea..41b593c5e 100644
              } else if (this.tracker instanceof EntityEgg) {
                  return new PacketPlayOutSpawnEntity(this.tracker, 62);
 -            } else if (this.tracker instanceof EntityTNTPrimed) {
+-                return new PacketPlayOutSpawnEntity(this.tracker, 50);
+-            } else if (this.tracker instanceof EntityEnderCrystal) {
 +            }
 +
 +            //fluxspigot invisible tnt //
-+            /*
++            
 +            else if (this.tracker instanceof EntityTNTPrimed) {
-                 return new PacketPlayOutSpawnEntity(this.tracker, 50);
--            } else if (this.tracker instanceof EntityEnderCrystal) {
++                return null;//new PacketPlayOutSpawnEntity(this.tracker, 50);
 +            }
-+           */
++           
 +            // fluxspigot invisible tnt //
 +
 +            else if (this.tracker instanceof EntityEnderCrystal) {
