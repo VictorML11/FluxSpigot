@@ -1,0 +1,44 @@
+From 610b09c109bc0543247d2809ce6d111ca82729fd Mon Sep 17 00:00:00 2001
+From: Vml11 <victorbcn98@gmail.com>
+Date: Sat, 14 Apr 2018 17:15:32 +0200
+Subject: [PATCH] disable-mob-ai
+
+
+diff --git a/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java b/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java
+index f69940e1..c3be050c 100644
+--- a/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java
++++ b/src/main/java/me/torciv/fluxspigot/FluxSpigotWorldConfig.java
+@@ -95,4 +95,10 @@ public class FluxSpigotWorldConfig {
+         if(fireTNTDispenseEvent) log("Dispensers fire TNTDispenseEvent set to True");
+     }
+ 
++    public boolean disableMobAi;
++    private void disableMobAi(){
++        disableMobAi = getBoolean("mobs.disable-mob-ai", true);
++        if(disableMobAi) log("Mob-Ai disabled");
++    }
++
+ }
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
+index b82b9847..b28a035f 100644
+--- a/src/main/java/net/minecraft/server/EntityInsentient.java
++++ b/src/main/java/net/minecraft/server/EntityInsentient.java
+@@ -470,6 +470,14 @@ public abstract class EntityInsentient extends EntityLiving {
+             return;
+         }
+         // Spigot End
++
++        // FluxSpigot disable mobAi
++
++        if(world.fluxSpigotConfig.disableMobAi){
++            return;
++        }
++
++        // End FluxSpigot
+         this.world.methodProfiler.a("sensing");
+         this.bk.a();
+         this.world.methodProfiler.b();
+-- 
+2.13.0.windows.1
+

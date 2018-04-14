@@ -1,4 +1,4 @@
-From 4c10d496a4676e9c25add594c286f3cab3a866cc Mon Sep 17 00:00:00 2001
+From 747151d9364d0de282a95413e3f82ad77ad644ec Mon Sep 17 00:00:00 2001
 From: Aikar <aikar@aikar.co>
 Date: Wed, 30 Mar 2016 02:13:24 -0400
 Subject: [PATCH] Use Fastutil Collections
@@ -18,18 +18,18 @@ diff --git a/pom.xml b/pom.xml
 index 286b9c88..d116fa45 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -34,6 +34,11 @@
-             <artifactId>trove4j</artifactId>
+@@ -35,6 +35,11 @@
              <version>3.0.3</version>
          </dependency>
-+        <dependency>
+         <dependency>
 +            <groupId>it.unimi.dsi</groupId>
 +            <artifactId>fastutil</artifactId>
 +            <version>7.0.12</version>
 +        </dependency>
-         <dependency>
++        <dependency>
              <groupId>net.techcable.tacospigot</groupId>
              <artifactId>api</artifactId>
+             <version>${project.version}</version>
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 index 0e6a37f7..9753401b 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
@@ -227,5 +227,5 @@ index 72c0b177..958fe4ff 100644
              }
  
 -- 
-2.14.3.windows.1
+2.13.0.windows.1
 
